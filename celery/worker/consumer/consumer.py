@@ -561,6 +561,9 @@ class Consumer(object):
             try:
                 strategy = strategies[type_]
             except KeyError as exc:
+                logger.exception(
+                    "UnregisteredTaskException: " + str(strategies)
+                )
                 return on_unknown_task(None, message, exc)
             else:
                 try:
