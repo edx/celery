@@ -14,8 +14,14 @@ from celery.utils.collections import DictAttribute, force_mapping
 from celery.utils.functional import maybe_list
 from celery.utils.imports import (NotAPackage, find_module, import_from_cwd,
                                   symbol_by_name)
+from celery.utils.log import get_logger
 
 __all__ = ('BaseLoader',)
+
+logger = get_logger(__name__)
+debug, info, warn, error, crit = (logger.debug, logger.info, logger.warning,
+                                  logger.error, logger.critical)
+
 
 _RACE_PROTECTION = False
 
@@ -255,9 +261,12 @@ def find_related_module(package, related_name):
         module = importlib.import_module(package)
         if not related_name and module:
             return module
-    except ImportError:
+    except ImportError as e:
         package, _, _ = package.rpartition('.')
         if not package:
+            error(
+                'PackageNotFound: No package found in %s', e, exc_info=True
+            )
             raise
 
     module_name = f'{package}.{related_name}'
@@ -265,7 +274,13 @@ def find_related_module(package, related_name):
     try:
         return importlib.import_module(module_name)
     except ImportError as e:
+        error(
+            'TaskModuleNotFound: No module found %s', e, exc_info=True
+        )
         import_exc_name = getattr(e, 'name', module_name)
         if import_exc_name is not None and import_exc_name != module_name:
+            error(
+                'ImportError: Found error in import module %s', e, exc_info=True
+            )
             raise e
         return
