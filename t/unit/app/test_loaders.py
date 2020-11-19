@@ -238,6 +238,7 @@ class test_autodiscovery:
         with patch('importlib.import_module') as imp:
             imp.return_value = Mock()
             imp.return_value.__path__ = 'foo'
+            imp.return_value.__name__ = 'foo'
             assert base.find_related_module('bar', 'tasks').__path__ == 'foo'
             imp.assert_any_call('bar')
             imp.assert_any_call('bar.tasks')
