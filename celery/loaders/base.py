@@ -17,8 +17,11 @@ from celery.utils.collections import DictAttribute, force_mapping
 from celery.utils.functional import maybe_list
 from celery.utils.imports import (NotAPackage, find_module, import_from_cwd,
                                   symbol_by_name)
+from celery.utils.log import get_logger
 
 __all__ = ('BaseLoader',)
+
+logger = get_logger(__name__)
 
 _RACE_PROTECTION = False
 
@@ -243,9 +246,17 @@ def autodiscover_tasks(packages, related_name='tasks'):
     global _RACE_PROTECTION
 
     if _RACE_PROTECTION:
+        logger.info("EDX-CELERY-RaceProtectionDenied: Access to autodiscover_tasks is "
+                    "denied due to race condition")
+        print("EDX-CELERY-RaceProtectionDenied: Access to autodiscover_tasks is "
+              "denied due to race condition")
         return ()
     _RACE_PROTECTION = True
     try:
+        logger.info("EDX-CELERY-FindingRelatedModules: Access to find_related_module is "
+                    "acquired")
+        print("EDX-CELERY-FindingRelatedModules: Access to find_related_module is "
+              "acquired")
         return [find_related_module(pkg, related_name) for pkg in packages]
     finally:
         _RACE_PROTECTION = False
@@ -255,21 +266,39 @@ def find_related_module(package, related_name):
     """Find module in package."""
     # Django 1.7 allows for speciying a class name in INSTALLED_APPS.
     # (Issue #2248).
+    print("EDX-CELERY-FindingTasksModule: Finding tasks module for %s" % package)
+    logger.info("EDX-CELERY-FindingTasksModule: Finding tasks module for %s", package)
     try:
         module = importlib.import_module(package)
         if not related_name and module:
             return module
     except ImportError:
-        package, _, _ = package.rpartition('.')
-        if not package:
-            raise
+        new_package, _, _ = package.rpartition('.')
 
+        if not new_package:
+            logger.info('EDX-CELERY-PackageNotFound: No package found in %s', package)
+            print('EDX-CELERY-PackageNotFound: No package found in %s' % package)
+            raise
+        package = new_package
     module_name = '{0}.{1}'.format(package, related_name)
 
     try:
-        return importlib.import_module(module_name)
+        import_module = importlib.import_module(module_name)
+        print("EDX-CELERY-TaskModuleImported: %s module is imported" % import_module.__name__)
+        logger.info("EDX-CELERY-TaskModuleImported: %s module is imported", import_module.__name__)
+
+        return import_module
     except ImportError as e:
         import_exc_name = getattr(e, 'name', module_name)
+
         if import_exc_name is not None and import_exc_name != module_name:
+            logger.exception('EDX-CELERY-ErrorInImport: Found some error in %s', package)
+            print('EDX-CELERY-ErrorInImport: Found some error in %s' % package)
+            print(str(e))
+            logger.error('EDX-CELERY-ErrorMsg: %r', e, exc_info=True)
             raise e
+
+        print("EDX-CELERY-TaskModuleNotFound: No task module in %s" % package)
+        logger.info("EDX-CELERY-TaskModuleNotFound: No task module in %s", package)
+
         return

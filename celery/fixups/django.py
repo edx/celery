@@ -12,8 +12,11 @@ from kombu.utils.objects import cached_property
 
 from celery import _state, signals
 from celery.exceptions import FixupWarning, ImproperlyConfigured
+from celery.utils.log import get_logger
 
 __all__ = ('DjangoFixup', 'fixup')
+
+logger = get_logger(__name__)
 
 ERR_NOT_INSTALLED = """\
 Environment variable DJANGO_SETTINGS_MODULE is defined
@@ -91,7 +94,17 @@ class DjangoFixup(object):
 
     def autodiscover_tasks(self):
         from django.apps import apps
-        return [config.name for config in apps.get_app_configs()]
+
+        logger.info("Loading get_app_configs() in django fixups.")
+
+        configs = []
+        for config in apps.get_app_configs():
+            logger.info("EDX-CELERY-ConfigForAutodiscover: %s's config added for "
+                        "autodiscovery", config.name)
+            print("EDX-CELERY-ConfigForAutodiscover: %s's config added for "
+                  "autodiscovery" % config.name)
+            configs.append(config.name)
+        return configs
 
     @cached_property
     def _now(self):
