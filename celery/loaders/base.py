@@ -283,6 +283,7 @@ def find_related_module(package, related_name):
         import_module = importlib.import_module(module_name)
         print("EDX-CELERY-TaskModuleImported: %s module is imported" % import_module.__name__)
         logger.info("EDX-CELERY-TaskModuleImported: %s module is imported", import_module.__name__)
+
         return importlib.import_module(module_name)
     except ImportError as e:
         import_exc_name = getattr(e, 'name', module_name)
@@ -292,4 +293,8 @@ def find_related_module(package, related_name):
             print('EDX-CELERY-ErrorInImport: Found some error in %s' % package)
             logger.error('EDX-CELERY-ErrorMsg: %r', e, exc_info=True)
             raise e
+
+        print("EDX-CELERY-TaskModuleNotFound: No task module in %s" % package)
+        logger.info("EDX-CELERY-TaskModuleNotFound: No task module in %s", package)
+
         return
