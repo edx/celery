@@ -652,6 +652,7 @@ class Celery(object):
                 the default modules.  Forcing will cause the auto-discovery
                 to happen immediately.
         """
+        logger.info('discovering tasks: searching a list of packages.')
         if force:
             return self._autodiscover_tasks(packages, related_name)
         signals.import_modules.connect(starpromise(
@@ -659,17 +660,23 @@ class Celery(object):
         ), weak=False, sender=self)
 
     def _autodiscover_tasks(self, packages, related_name, **kwargs):
+        logger.info('discovering tasks: auto-discovering.')
+
         if packages:
             return self._autodiscover_tasks_from_names(packages, related_name)
         return self._autodiscover_tasks_from_fixups(related_name)
 
     def _autodiscover_tasks_from_names(self, packages, related_name):
         # packages argument can be lazy
+        logger.info('discovering tasks: from names.')
+
         return self.loader.autodiscover_tasks(
             packages() if callable(packages) else packages, related_name,
         )
 
     def _autodiscover_tasks_from_fixups(self, related_name):
+        logger.info('discovering tasks: from fixups.')
+
         return self._autodiscover_tasks_from_names([
             pkg for fixup in self._fixups
             for pkg in fixup.autodiscover_tasks()
