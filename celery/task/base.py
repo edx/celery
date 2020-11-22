@@ -14,12 +14,15 @@ from celery import current_app
 from celery.app.task import Context
 from celery.app.task import Task as BaseTask
 from celery.app.task import _reprtask
+from celery.utils.log import get_logger
 from celery.five import python_2_unicode_compatible, with_metaclass
 from celery.local import Proxy, class_property, reclassmethod
 from celery.schedules import maybe_schedule
 from celery.utils.log import get_task_logger
 
 __all__ = ('Context', 'Task', 'TaskType', 'PeriodicTask', 'task')
+
+logger = get_logger(__name__)
 
 #: list of methods that must be classmethods in the old API.
 _COMPAT_CLASSMETHODS = (
@@ -114,7 +117,9 @@ class TaskType(type):
         # name, so we always return the registered version.
         tasks = app._tasks
         if task_name not in tasks:
+            logger.info('TaskName not in tasks %s ', task_name)
             tasks.register(new(cls, name, bases, attrs))
+
         instance = tasks[task_name]
         instance.bind(app)
         return instance.__class__

@@ -561,9 +561,7 @@ class Consumer(object):
             try:
                 strategy = strategies[type_]
             except KeyError as exc:
-                logger.exception(
-                    "UnregisteredTaskException: " + str(strategies)
-                )
+                logger.error('UnregisteredTaskKeyError:  %r', exc, exc_info=True)
                 return on_unknown_task(None, message, exc)
             else:
                 try:
@@ -574,8 +572,10 @@ class Consumer(object):
                         callbacks,
                     )
                 except (InvalidTaskError, ContentDisallowed) as exc:
+                    logger.error('UnregisteredTaskInvalidError:  %r', exc, exc_info=True)
                     return on_invalid_task(payload, message, exc)
                 except DecodeError as exc:
+                    logger.error('UnregisteredTaskDecodeError:  %r', exc, exc_info=True)
                     return self.on_decode_error(message, exc)
 
         return on_task_received
