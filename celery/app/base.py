@@ -459,7 +459,10 @@ class Celery(object):
             try:
                 task.__qualname__ = fun.__qualname__
             except AttributeError:
+                logger.error('_task_from_fun: AttributeError inside %s.', name)
+                print('_task_from_fun: AttributeError inside %s.' % name )
                 pass
+
             self._tasks[task.name] = task
             task.bind(self)  # connects task to this app
             add_autoretry_behaviour(task, **options)
@@ -475,6 +478,7 @@ class Celery(object):
             style task classes, you should not need to use this for
             new projects.
         """
+        logger.info('register_task: task-based class %s ', task)
         task = inspect.isclass(task) and task() or task
         if not task.name:
             task_cls = type(task)
@@ -498,6 +502,7 @@ class Celery(object):
         with self._finalize_mutex:
             if not self.finalized:
                 if auto and not self.autofinalize:
+                    logger.error('Contract breach: app not finalized')
                     raise RuntimeError('Contract breach: app not finalized')
                 self.finalized = True
                 _announce_app_finalized(self)
