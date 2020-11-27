@@ -476,6 +476,7 @@ class Celery(object):
             new projects.
         """
         task = inspect.isclass(task) and task() or task
+        print('ClassBasedRegistry: Going to register %s', task)
         if not task.name:
             task_cls = type(task)
             task.name = self.gen_task_name(
@@ -484,6 +485,7 @@ class Celery(object):
         self.tasks[task.name] = task
         task._app = self
         task.bind(self)
+        print('ClassBasedRegistry: Task name registered %s', task)
         return task
 
     def gen_task_name(self, name, module):
@@ -507,6 +509,7 @@ class Celery(object):
                     maybe_evaluate(pending.popleft())
 
                 for task in values(self._tasks):
+                    print('FinalizingTask: Finalizing task with name %s' % task)
                     task.bind(self)
 
                 self.on_after_finalize.send(sender=self)

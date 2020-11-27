@@ -27,6 +27,7 @@ class TaskRegistry(dict):
         The task will be automatically instantiated if not already an
         instance. Name must be configured prior to registration.
         """
+        print('Registry: Going to register %s', task)
         if task.name is None:
             raise InvalidTaskError(
                 'Task class {0!r} must specify .name attribute'.format(
@@ -34,6 +35,7 @@ class TaskRegistry(dict):
         task = inspect.isclass(task) and task() or task
         add_autoretry_behaviour(task)
         self[task.name] = task
+        print('Registry: Task name registered %s', task)
 
     def unregister(self, name):
         """Unregister task by name.
