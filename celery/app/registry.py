@@ -9,12 +9,8 @@ from celery._state import get_current_app
 from celery.app.autoretry import add_autoretry_behaviour
 from celery.exceptions import InvalidTaskError, NotRegistered
 from celery.five import items
-from celery.utils.log import get_logger
-
 
 __all__ = ('TaskRegistry',)
-
-logger = get_logger(__name__)
 
 
 class TaskRegistry(dict):
@@ -32,15 +28,12 @@ class TaskRegistry(dict):
         instance. Name must be configured prior to registration.
         """
         if task.name is None:
-            logger.error('Registry: Task name is none %s', task.name)
             raise InvalidTaskError(
                 'Task class {0!r} must specify .name attribute'.format(
                     type(task).__name__))
-
         task = inspect.isclass(task) and task() or task
         add_autoretry_behaviour(task)
         self[task.name] = task
-        logger.info('Registry: Task name registered %s', task)
 
     def unregister(self, name):
         """Unregister task by name.
@@ -54,9 +47,7 @@ class TaskRegistry(dict):
         """
         try:
             self.pop(getattr(name, 'name', name))
-            logger.info('Registry: Un-Register error %s', name)
-        except KeyError as e:
-            logger.error('Registry: Keyerror %r', e, exc_info=True)
+        except KeyError:
             raise self.NotRegistered(name)
 
     # -- these methods are irrelevant now and will be removed in 4.0
