@@ -17,7 +17,6 @@ from celery.platforms import pyimplementation
 from celery.utils.collections import ConfigurationView
 from celery.utils.imports import import_from_cwd, qualname, symbol_by_name
 from celery.utils.text import pretty
-from celery.utils.log import get_logger
 
 from .defaults import (_OLD_DEFAULTS, _OLD_SETTING_KEYS, _TO_NEW_KEY,
                        _TO_OLD_KEY, DEFAULTS, SETTING_KEYS, find)
@@ -28,8 +27,6 @@ except ImportError:
     # TODO: Remove this when we drop Python 2.7 support
     from collections import Mapping
 
-
-logger = get_logger(__name__)
 
 __all__ = (
     'Settings', 'appstr', 'bugreport',
@@ -395,8 +392,6 @@ def find_app(app, symbol_by_name=symbol_by_name, imp=import_from_cwd):
                             symbol_by_name=symbol_by_name, imp=imp,
                         )
                     except ImportError:
-                        logger.error("ImportError: inside utils %s ", app)
-                        print("ImportError: inside utils %s " % app)
                         pass
                 for suspect in values(vars(sym)):
                     if isinstance(suspect, Celery):

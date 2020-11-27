@@ -127,10 +127,7 @@ class BaseLoader(object):
         if isinstance(obj, string_t):
             try:
                 obj = self._smart_import(obj, imp=self.import_from_cwd)
-                logger.info('config_from_object: loaded successfully %s ', obj)
             except (ImportError, AttributeError):
-                logger.error('config_from_object: error appeared %s ', obj)
-
                 if silent:
                     return False
                 raise
@@ -147,18 +144,14 @@ class BaseLoader(object):
         # Not sure if path is just a module name or if it includes an
         # attribute name (e.g., ``os.path``, vs, ``os.path.abspath``).
         try:
-            logger.info('_smart_import: loaded successfully %s ', path)
             return imp(path)
         except ImportError:
             # Not a module name, so try module + attribute.
-            logger.error('_smart_import error appeared %s ', imp)
-            print('_smart_import error appeared %s.' % imp)
             return symbol_by_name(path, imp=imp)
 
     def _import_config_module(self, name):
         try:
             self.find_module(name)
-            logger.info('_import_config_module: loaded successfully %s ', name)
         except NotAPackage:
             if name.endswith('.py'):
                 reraise(NotAPackage, NotAPackage(CONFIG_WITH_SUFFIX.format(
@@ -229,7 +222,6 @@ class BaseLoader(object):
                 return DictAttribute(usercfg)
 
     def autodiscover_tasks(self, packages, related_name='tasks'):
-        logger.info('autodiscover_tasks: loaded successfully %s ', packages)
         self.task_modules.update(
             mod.__name__ for mod in autodiscover_tasks(packages or (),
                                                        related_name) if mod)

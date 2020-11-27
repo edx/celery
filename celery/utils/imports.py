@@ -11,7 +11,6 @@ from contextlib import contextmanager
 from kombu.utils.imports import symbol_by_name
 
 from celery.five import reload
-from celery.utils.log import get_logger
 
 #: Billiard sets this when execv is enabled.
 #: We use it to find out the name of the original ``__main__``
@@ -24,8 +23,6 @@ __all__ = (
     'cwd_in_path', 'find_module', 'import_from_cwd',
     'reload_from_cwd', 'module_file', 'gen_task_name',
 )
-
-logger = get_logger(__name__)
 
 
 class NotAPackage(Exception):
@@ -82,25 +79,22 @@ def find_module(module, path=None, imp=None):
     with cwd_in_path():
         try:
             return imp(module)
-        except ImportError as e:
+        except ImportError:
             # Raise a more specific error if the problem is that one of the
             # dot-separated segments of the module name is not a package.
-            logger.error('FindModuleImportCWD Error: %r', e, exc_info=True)
             if '.' in module:
                 parts = module.split('.')
                 for i, part in enumerate(parts[:-1]):
                     package = '.'.join(parts[:i + 1])
                     try:
                         mpart = imp(package)
-                    except ImportError as e:
+                    except ImportError:
                         # Break out and re-raise the original ImportError
                         # instead.
-                        logger.error('FindModuleImportSplit Error: %r', e, exc_info=True)
                         break
                     try:
                         mpart.__path__
-                    except AttributeError as e:
-                        logger.error('FindModuleImportAttribute Error: %r', e, exc_info=True)
+                    except AttributeError:
                         raise NotAPackage(package)
             raise
 
@@ -136,11 +130,9 @@ def gen_task_name(app, name, module_name):
     module_name = module_name or '__main__'
     try:
         module = sys.modules[module_name]
-        logger.info('imports module %s', module)
     except KeyError:
         # Fix for manage.py shell_plus (Issue #366)
         module = None
-        logger.error('gen_task_name error %s', module)
 
     if module is not None:
         module_name = module.__name__
@@ -158,8 +150,7 @@ def gen_task_name(app, name, module_name):
 def load_extension_class_names(namespace):
     try:
         from pkg_resources import iter_entry_points
-    except ImportError as e:  # pragma: no cover
-        logger.error('load_extension_class_names error %r', e, exc_info=True)
+    except ImportError:  # pragma: no cover
         return
 
     for ep in iter_entry_points(namespace):
