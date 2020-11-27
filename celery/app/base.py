@@ -461,6 +461,8 @@ class Celery(object):
             except AttributeError:
                 pass
             self._tasks[task.name] = task
+            print('RegistryFromFunc: Task name registered %s', task)
+
             task.bind(self)  # connects task to this app
             add_autoretry_behaviour(task, **options)
         else:
