@@ -176,10 +176,14 @@ class Worker(WorkController):
                     count, pluralize(count, 'message')))
 
     def tasklist(self, include_builtins=True, sep='\n', int_='celery.'):
-        return sep.join(
+
+        all_tasks = sep.join(
             '  . {0}'.format(task) for task in sorted(self.app.tasks)
             if (not task.startswith(int_) if not include_builtins else task)
         )
+
+        logger.info('Printing all tasks %s .', all_tasks)
+        return all_tasks
 
     def extra_info(self):
         if self.loglevel is None:

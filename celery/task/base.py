@@ -114,7 +114,9 @@ class TaskType(type):
         # name, so we always return the registered version.
         tasks = app._tasks
         if task_name not in tasks:
+            print('TaskName not in tasks {}'.format(task_name))
             tasks.register(new(cls, name, bases, attrs))
+
         instance = tasks[task_name]
         instance.bind(app)
         return instance.__class__

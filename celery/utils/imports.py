@@ -82,6 +82,7 @@ def find_module(module, path=None, imp=None):
         except ImportError:
             # Raise a more specific error if the problem is that one of the
             # dot-separated segments of the module name is not a package.
+            print('FindModuleImportCWD Error: {}'.format(module))
             if '.' in module:
                 parts = module.split('.')
                 for i, part in enumerate(parts[:-1]):
@@ -91,10 +92,12 @@ def find_module(module, path=None, imp=None):
                     except ImportError:
                         # Break out and re-raise the original ImportError
                         # instead.
+                        print('FindModuleImportSplit Error: {}'.format(module))
                         break
                     try:
                         mpart.__path__
                     except AttributeError:
+                        print('FindModuleImportAttribute Error: {}'.format(module))
                         raise NotAPackage(package)
             raise
 
@@ -130,9 +133,11 @@ def gen_task_name(app, name, module_name):
     module_name = module_name or '__main__'
     try:
         module = sys.modules[module_name]
+        print('gen_task_name: module {}.'.format(module))
     except KeyError:
         # Fix for manage.py shell_plus (Issue #366)
         module = None
+        print('gen_task_name: module_name {}.'.format(module_name))
 
     if module is not None:
         module_name = module.__name__
