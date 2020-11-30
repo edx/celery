@@ -444,6 +444,8 @@ class Celery(object):
         base = base or self.Task
 
         if name not in self._tasks:
+            print('RegistryFromFunc: Going to register %s from func' % name)
+            logger.info('RegistryFromFunc: Going to register %s from func', name)
             run = fun if bind else staticmethod(fun)
             task = type(fun.__name__, (base,), dict({
                 'app': self,
@@ -459,8 +461,12 @@ class Celery(object):
             try:
                 task.__qualname__ = fun.__qualname__
             except AttributeError:
-                pass
+                print('RegistryFromFunc: __qualname__ not found for %s' % task)
+                logger.warning('RegistryFromFunc: __qualname__ not found for %s', task)
             self._tasks[task.name] = task
+            print('RegistryFromFunc: Task name registered %s'% task)
+            logger.info('RegistryFromFunc: Task name registered %s', task)
+
             task.bind(self)  # connects task to this app
             add_autoretry_behaviour(task, **options)
         else:
@@ -476,14 +482,20 @@ class Celery(object):
             new projects.
         """
         task = inspect.isclass(task) and task() or task
+        print('ClassBasedRegistry: Going to register %s' % task)
+        logger.info('ClassBasedRegistry: Going to register %s', task)
         if not task.name:
             task_cls = type(task)
+            print('ClassBasedRegistry: Generating task name as task name not found for %s' % task)
+            logger.info('ClassBasedRegistry: Generating task name as task name not found for %s', task)
             task.name = self.gen_task_name(
                 task_cls.__name__, task_cls.__module__)
         add_autoretry_behaviour(task)
         self.tasks[task.name] = task
         task._app = self
         task.bind(self)
+        print('ClassBasedRegistry: Task name registered %s' % task)
+        logger.info('ClassBasedRegistry: Task name registered %s', task)
         return task
 
     def gen_task_name(self, name, module):
@@ -507,6 +519,8 @@ class Celery(object):
                     maybe_evaluate(pending.popleft())
 
                 for task in values(self._tasks):
+                    print('FinalizingTask: Finalizing task with name %s' % task)
+                    logger.info('FinalizingTask: Finalizing task with name %s' % task)
                     task.bind(self)
 
                 self.on_after_finalize.send(sender=self)
