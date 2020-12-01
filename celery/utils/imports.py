@@ -133,12 +133,10 @@ def gen_task_name(app, name, module_name):
     module_name = module_name or '__main__'
     try:
         module = sys.modules[module_name]
-        print('gen_task_name: module {}.'.format(module))
         logger.info('gen_task_name: module {}.'.format(module))
     except KeyError:
         # Fix for manage.py shell_plus (Issue #366)
         module = None
-        print('gen_task_name: module_name {}.'.format(module_name))
         logger.error('gen_task_name: module_name {}.'.format(module_name))
 
     if module is not None:
