@@ -513,7 +513,6 @@ class Celery(object):
                     maybe_evaluate(pending.popleft())
 
                 for task in values(self._tasks):
-                    print('FinalizingTask: Finalizing task with name %s' % task)
                     logger.info('FinalizingTask: Finalizing task with name %s' % task)
                     task.bind(self)
 
