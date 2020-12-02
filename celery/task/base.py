@@ -17,9 +17,11 @@ from celery.app.task import _reprtask
 from celery.five import python_2_unicode_compatible, with_metaclass
 from celery.local import Proxy, class_property, reclassmethod
 from celery.schedules import maybe_schedule
-from celery.utils.log import get_task_logger
+from celery.utils.log import get_task_logger, get_logger
 
 __all__ = ('Context', 'Task', 'TaskType', 'PeriodicTask', 'task')
+
+logger = get_logger(__name__)
 
 #: list of methods that must be classmethods in the old API.
 _COMPAT_CLASSMETHODS = (
@@ -86,6 +88,7 @@ class TaskType(type):
         task_name = attrs.get('name')
         if not task_name:
             attrs['name'] = task_name = app.gen_task_name(name, task_module)
+            logger.info("TaskType: automatically generate task_name: %s", task_name)
 
         if not attrs.get('_decorated'):
             # non decorated tasks must also be shared in case
@@ -115,6 +118,8 @@ class TaskType(type):
         tasks = app._tasks
         if task_name not in tasks:
             tasks.register(new(cls, name, bases, attrs))
+            logger.info("TaskType: register task_name: %s", task_name)
+
         instance = tasks[task_name]
         instance.bind(app)
         return instance.__class__
