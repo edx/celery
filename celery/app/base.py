@@ -451,6 +451,7 @@ class Celery(object):
         base = base or self.Task
 
         if name not in self._tasks:
+            logger.info('RegistryFromFunc: Going to register %s from func', name)
             run = fun if bind else staticmethod(fun)
             task = type(fun.__name__, (base,), dict({
                 'app': self,
