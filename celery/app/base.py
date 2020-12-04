@@ -403,6 +403,7 @@ class Celery(object):
             # the task instance from the current app.
             # Really need a better solution for this :(
             from . import shared_task
+            logger.info("SharedTask: Register %s as shared task", args)
             return shared_task(*args, lazy=False, **opts)
 
         def inner_create_task_cls(shared=True, filter=None, lazy=True, **opts):
@@ -411,13 +412,19 @@ class Celery(object):
             def _create_task_cls(fun):
                 if shared:
                     def cons(app):
+                        logger.info("inner_create_task_cls_cons: Register %s as shared task", fun)
                         return app._task_from_fun(fun, **opts)
                     cons.__name__ = fun.__name__
+                    logger.info(
+                        "inner_create_task_cls: connect_on_app_finalize %s",
+                        cons)
                     connect_on_app_finalize(cons)
                 if not lazy or self.finalized:
+                    logger.info("inner_create_task_cls: Self Finalized %s ", fun)
                     ret = self._task_from_fun(fun, **opts)
                 else:
                     # return a proxy object that evaluates on first use
+                    logger.info("inner_create_task_cls: PromiseProxy %s ", fun)
                     ret = PromiseProxy(self._task_from_fun, (fun,), opts,
                                        __doc__=fun.__doc__)
                     self._pending.append(ret)
