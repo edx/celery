@@ -9,6 +9,9 @@ from celery._state import get_current_app
 from celery.app.autoretry import add_autoretry_behaviour
 from celery.exceptions import InvalidTaskError, NotRegistered
 from celery.five import items
+from celery.utils.log import get_logger
+
+logger = get_logger(__name__)
 
 __all__ = ('TaskRegistry',)
 
@@ -27,6 +30,7 @@ class TaskRegistry(dict):
         The task will be automatically instantiated if not already an
         instance. Name must be configured prior to registration.
         """
+        logger.info('TaskRegistry: Going to register %s', task)
         if task.name is None:
             raise InvalidTaskError(
                 'Task class {0!r} must specify .name attribute'.format(
@@ -34,6 +38,7 @@ class TaskRegistry(dict):
         task = inspect.isclass(task) and task() or task
         add_autoretry_behaviour(task)
         self[task.name] = task
+        logger.info('TaskRegistry: Task name registered %s', task)
 
     def unregister(self, name):
         """Unregister task by name.
