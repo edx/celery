@@ -32,6 +32,7 @@ class TaskRegistry(dict):
         """
         logger.info('TaskRegistry: Going to register %s', task)
         if task.name is None:
+            logger.error('TaskRegistry: Task name is None %s', task)
             raise InvalidTaskError(
                 'Task class {0!r} must specify .name attribute'.format(
                     type(task).__name__))
@@ -52,7 +53,9 @@ class TaskRegistry(dict):
         """
         try:
             self.pop(getattr(name, 'name', name))
+            logger.info('TaskRegistry: Task name un-registered %s', name)
         except KeyError:
+            logger.error('TaskRegistry: Error in un-registering task %s', name)
             raise self.NotRegistered(name)
 
     # -- these methods are irrelevant now and will be removed in 4.0
