@@ -11,9 +11,6 @@ from contextlib import contextmanager
 from kombu.utils.imports import symbol_by_name
 
 from celery.five import reload
-from celery.utils.log import get_logger
-
-logger = get_logger(__name__)
 
 #: Billiard sets this when execv is enabled.
 #: We use it to find out the name of the original ``__main__``
@@ -133,11 +130,9 @@ def gen_task_name(app, name, module_name):
     module_name = module_name or '__main__'
     try:
         module = sys.modules[module_name]
-        logger.info('gen_task_name: module {}.'.format(module))
     except KeyError:
         # Fix for manage.py shell_plus (Issue #366)
         module = None
-        logger.error('gen_task_name: module_name {}.'.format(module_name))
 
     if module is not None:
         module_name = module.__name__
